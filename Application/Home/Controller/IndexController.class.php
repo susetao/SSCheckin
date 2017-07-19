@@ -37,7 +37,6 @@ class IndexController extends LoginCheckController
                 echo '</td></tr>';
             }
             echo '</table>';
-            echo "<script>$('#refresh').show()</script>";
             return;
         }
 
