@@ -74,13 +74,18 @@ $('#refresh').hide();
 
 $('#checkin').on('click',function(){
     $('#Checkin-modal').modal('show');
-    $('#modal-body').load('<?php echo U('/Home/Index/checkin');?>');
-    $('#refresh').show();
+    $('#Checkin-body').load('<?php echo U('/Home/Index/checkin');?>','',function(response,status,xhr){
+        if(status != 'success'){
+            $('#Checkin-body').html('向服务器请求数据时出错:'+status);
+        }
+        $('#refresh').show();
+
+        $('#refresh').on('click',function(){
+            window.location.reload(true);
+        })
+    });
 });
 
-$('#refresh').on('click',function(){
-    window.location.reload(true);
-})
 </script>
 </body>
 </html>

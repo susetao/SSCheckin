@@ -30,9 +30,14 @@ class IndexController extends LoginCheckController
         $_log = D('log');
         
         if($sid == 0){
+            echo '<table class="table">';
             foreach ($_website->field('sid')->select() as $value) {
+                echo '<tr><td>';
                 $this->checkin($value['sid']);
+                echo '</td></tr>';
             }
+            echo '</table>';
+            echo "<script>$('#refresh').show()</script>";
             return;
         }
 
@@ -168,7 +173,6 @@ class IndexController extends LoginCheckController
             }
 
         }
-        echo '<br/>';
     }
 
     //0:不支持;1:STAFF(ss-panel-mod)或ss-panel-3;2:ss-panel2;
