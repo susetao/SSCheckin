@@ -55,6 +55,10 @@ class IndexController extends LoginCheckController
             $ss_website_type = $value['site_type'];
         }
 
+        if(empty($ss_website)){
+            return;
+        }
+
         echo $sid.':';
         
         //获取网站访问状态
@@ -252,7 +256,7 @@ class IndexController extends LoginCheckController
                 //JSON匹配失败
                 $_log->add(array(
                     'sid' => $sid,
-                    'result' => 'JSON匹配失败;[curl_result]:'.$curl_result
+                    'result' => 'JSON匹配失败;[curl_result]:'.strip_tags($curl_result)
                 ));
                 return 0;
             }
@@ -305,7 +309,7 @@ class IndexController extends LoginCheckController
                 //JSON匹配失败
                 $_log->add(array(
                     'sid' => $sid,
-                    'result' => 'JSON匹配失败;[curl_result]:'.$curl_result
+                    'result' => 'JSON匹配失败;[curl_result]:'.strip_tags($curl_result)
                 ));
                 return 0;
             }
@@ -404,7 +408,7 @@ class IndexController extends LoginCheckController
                 //JSON匹配失败
                 $_log->add(array(
                     'sid' => $sid,
-                    'result' => 'JSON匹配失败;[curl_result]:'.$curl_result
+                    'result' => 'JSON匹配失败;[curl_result]:'.strip_tags($curl_result)
                 ));
                 return 0;
             }
@@ -454,7 +458,7 @@ class IndexController extends LoginCheckController
                     if(empty($username)){
                         curl_setopt($ch,CURLOPT_URL,$website.'/user/my.php');
                         $curl_result = curl_exec($ch);
-                        if(preg_match('/(?<=<dd>).*@.*(?=<\/dd>)/',$curl_result,$preg_results)){
+                        if(preg_match('/(?<=：).*@.*\..*(?=<\/p>)/',$curl_result,$preg_results)){
                             $username = $preg_results[0];
                             $_website->where('sid='.$sid)->save(array('username'=>$username));
                         }
@@ -466,7 +470,7 @@ class IndexController extends LoginCheckController
                 //JSON匹配失败
                 $_log->add(array(
                     'sid' => $sid,
-                    'result' => 'JSON匹配失败;[curl_result]:'.$curl_result
+                    'result' => 'JSON匹配失败;[curl_result]:'.strip_tags($curl_result)
                 ));
                 return 0;
             }

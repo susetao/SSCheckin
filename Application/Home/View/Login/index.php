@@ -2,13 +2,14 @@
 <html lang="zh-CN">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>SSCheckin</title>
+    <title>{$Think.config.WEB_TITLE}</title>
     <link rel="stylesheet" href="/Public/bootstrap.min.css">
+    <link rel="shortcut icon" type="image/x-icon" href="/Public/favicon.icon" />
 </head>
 <body>
 <div class="container">
     <div class="jumbotron">
-        <h1>欢迎访问！</h1>
+        <h1>欢迎访问{$Think.config.WEB_TITLE}！</h1>
         <p>这是一个SS网站自动签到的网站，你需要登录才能查看更多内容！</p>
     </div>
     <div class="panel panel-default">

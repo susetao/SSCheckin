@@ -2,8 +2,9 @@
 <html lang="zh-CN">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>SSCheckin</title>
+    <title>{$Think.config.WEB_TITLE}</title>
     <link rel="stylesheet" href="/Public/bootstrap.min.css">
+    <link rel="shortcut icon" type="image/x-icon" href="/Public/favicon.icon" />
     <style>
     th,td{
         text-align: center;
@@ -12,9 +13,11 @@
 </head>
 <body>
 <div class="container">
+    <div class="page-header">
+            <h1>签到信息 <small>{$Think.config.WEB_TITLE}</small></h1>
+        </div>
     <div class="table-responsive">
         <table class="table table-hover">
-            <caption>站点签到信息</caption>
             <tr>
                 <th>#</th>
                 <th>站点</th>
@@ -22,7 +25,7 @@
                 <th>上次签到时间</th>
                 <th>上次签到结果</th>
                 <th>剩余流量</th>
-                <th>查看日志</th>
+                <th>编辑</th>
             </tr>
             <?php
             foreach ($table_data as $value) {
@@ -42,7 +45,7 @@
                     }
                     ?>
                     <td><?php echo $value['data_remain']?></td>
-                    <td></td>
+                    <td><a href="<?php echo U('Modify/index?id='.$value['sid']);?>"><span class="glyphicon glyphicon-zoom-in"></a></span></td>
                 </tr>
                 <?php
             }
@@ -50,8 +53,8 @@
         </table>
     </div>
     <div class="row text-center">
-        <button id="checkin" class="btn btn-default">立刻执行签到</button>
-        <a href="#" class="btn btn-default">查看所有日志</a>
+        <a href="<?php echo U('/Home/Add/');?>" class="btn btn-default"><span class="glyphicon glyphicon-plus"></span> 添加签到站点</a>
+        <button id="checkin" class="btn btn-default"><span class="glyphicon glyphicon-repeat"></span> 立刻执行签到</button>
     </div>
 </div>
 
