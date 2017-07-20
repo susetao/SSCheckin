@@ -66,9 +66,11 @@
     <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
     <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script>
-        var select = $("#checkin_type");
+        select = $("#checkin_type");
+
+        selectChange();
         
-        select.on('change',selectChange());
+        select.on('change',selectChange);
 
         function selectChange() {
             var value = select.val();
