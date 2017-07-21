@@ -8,12 +8,22 @@ class LoginCheckController extends Controller
     function __construct()
     {
         parent::__construct();
-        if (!session('login')) {
+
+        if(empty(session('uid'))){
+            redirect('/Home/Login');
+            return;
+        }
+
+        $username = session('username');
+        $password = session('password');
+        $uid = session('uid');
+        
+        $result = D('user')->where(array('uid' => $uid,'username' => $username,'password' => $password))->find();
+
+        if(empty($result)){
+            session(null);
             redirect('/Home/Login');
         }
-        // $Model = new \Think\Model();
-        // $Model->query("SET time_zone = '+8:00'");
-        // D()->query("SET time_zone = '+8:00'");
     }
 
     public function index()

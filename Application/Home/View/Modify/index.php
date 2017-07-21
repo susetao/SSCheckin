@@ -36,8 +36,9 @@
                         <label for="checkin_type" class="col-sm-2 control-label">签到方式</label>
                         <div class="col-sm-10">
                             <select id="checkin_type" name="checkin_type" class="form-control">
-                                <option value="1">帐号密码</option>
-                                <option value="2">Cookies</option>
+                                <option <?php if($result['checkin_type'] == 1)echo 'selected';?> value="1">帐号密码</option>
+                                <option <?php if($result['checkin_type'] == 2)echo 'selected';?> value="2">Cookies</option>
+                                
                             </select>
                         </div>
                     </div>
@@ -135,7 +136,12 @@
     <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script>
         var select = $("#checkin_type");
-        select.on('change',function() {
+
+        selectChange();
+
+        select.on('change',selectChange);
+
+        function selectChange() {
             var value = select.val();
             if(value == 1){
                 $('#suser').prop('required',true);
@@ -156,7 +162,7 @@
             }else{
                 window.location.reload();
             }
-        })
+        }
 
         $("#delete").on('click',function() {
             $("#delete-modal").modal('show');

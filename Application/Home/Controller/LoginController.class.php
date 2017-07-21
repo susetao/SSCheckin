@@ -17,12 +17,19 @@ class LoginController extends Controller
     public function login()
     {
         if (IS_POST) {
-            $password = I('post.password');
-            if (D('settings')->where(array('key' => 'password', 'value' => $password))->find()) {
-                session('login', '1');
+            $username = I('post.username');
+            $password = md5(I('post.password'));
+            if(empty($username) || empty($password)){
+                $this->display();
+            }
+            $result = D('user')->where(array('username' =>$username , 'password' => $password))->field('uid')->find();
+            if ($result) {
+                session('uid', $result['uid']);
+                session('username', $username);
+                session('password', $password);
                 $this->success('登录成功', '/Home/Index/');
             } else {
-                $this->error('密码错误', '/Home/Login/');
+                $this->error('帐号或密码错误');
             }
         } else {
             $this->display();

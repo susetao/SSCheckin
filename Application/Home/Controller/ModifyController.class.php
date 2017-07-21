@@ -4,33 +4,29 @@ namespace Home\Controller;
 class ModifyController extends LoginCheckController{
     public function index()
     {
-        if(empty(I("get.id"))){
-            return $this->error('非法请求');
-        }
+        $this->chcek();
         $sid = I("get.id");
 
-        $result = D('website')->where('sid='.$sid)->field('sid,website,username,password,cookies,website_name')->find();
+        $result = D('website')->where('sid='.$sid)->find();
         $this->assign('result',$result);
         $this -> display();
     }
 
     public function del()
     {
-        if(empty(I('get.id'))){
-            return $this->error('非法请求');
+        $this->chcek();
+        $sid = I('get.id');
+        if(D("website")->where("sid=".$sid)->delete()){
+            $this->success('删除成功','/Home/');
         }else{
-            $sid = I('get.id');
-            if(D("website")->where("sid=".$sid)->delete()){
-                $this->success('删除成功','/Home/');
-            }else{
-                $this->error('删除失败');
-            }
+            $this->error('删除失败');
         }
     }
 
     public function mod()
     {
-        if(IS_POST && !empty(I('get.id'))){
+        $this->chcek();
+        if(IS_POST){
             $sid = I('get.id');
             $checkin_type = I('post.checkin_type');
             $website_name = I('post.website_name');
@@ -57,7 +53,7 @@ class ModifyController extends LoginCheckController{
             }
 
             $result = D('website')->where('sid='.$sid)->save(array(
-                'checkin_type' => 1,
+                'checkin_type' => $checkin_type,
                 'website' => $website,
                 'website_name' => $website_name,
                 'username' => $suser,
@@ -77,9 +73,7 @@ class ModifyController extends LoginCheckController{
 
     public function log()
     {
-        if(empty(I("get.id"))){
-            return $this->error('非法请求');
-        }
+        $this->chcek();
         $sid = I("get.id");
         $result = D('log')->where('sid='.$sid)->order('id DESC')->limit(30)->select();
         echo '<table class="table"><tr><th>时间</th><th>日志</th></tr>';
@@ -98,10 +92,7 @@ class ModifyController extends LoginCheckController{
     }
     public function clearCache()
     {
-        # code...
-        if(empty(I("get.id"))){
-            return $this->error('非法请求');
-        }
+        $this->chcek();
         $sid = I("get.id");
         $result = D('website')->where('sid='.$sid)->field('checkin_type')->find();
         $checkin_type = $result['checkin_type'];
@@ -134,6 +125,17 @@ class ModifyController extends LoginCheckController{
             $this->success('清除缓存成功');
         }else{
             $this->error('清除缓存失败');
+        }
+    }
+
+    private function chcek(){
+        if(empty(I("get.id"))){
+            return $this->error('非法请求');
+        }
+
+        $result = D('website')->where(array('uid'=>session('uid'),'sid'=>I("get.id")));
+        if(empty($result)){
+            return $this->error('非法请求');
         }
     }
 }

@@ -58,19 +58,20 @@
     </div>
 </div>
 
-<div class="modal fade" id="Checkin-modal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+<div class="modal fade" id="Checkin-modal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                 <h4 class="modal-title" id="Checkin-title">
-                    签到结果
+                    提示
                 </h4>
             </div>
             <div id="Checkin-body" class="modal-body">
-                签到中，请耐心等待签到结果...
+                
             </div>
             <div class="modal-footer">
-                <button id="refresh" class="btn btn-primary">我知道了</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
             </div>
         </div>
     </div>
@@ -80,19 +81,12 @@
 <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
 <script type="text/javascript">
-$('#refresh').hide();
-
 $('#checkin').on('click',function(){
     $('#Checkin-modal').modal('show');
-    $('#Checkin-body').load('<?php echo U('/Home/Index/checkin');?>','',function(response,status,xhr){
+    $('#Checkin-body').load('<?php echo U('/Home/Index/userRequire?id='.session('uid'));?>','',function(response,status,xhr){
         if(status != 'success'){
             $('#Checkin-body').html('向服务器请求数据时出错:'+status);
         }
-        $('#refresh').show();
-
-        $('#refresh').on('click',function(){
-            window.location.reload(true);
-        })
     });
 });
 
