@@ -1,3 +1,4 @@
 Application/Runtime/*
 *.zip
 .vscode
+config.php

@@ -38,8 +38,8 @@
                             <select id="checkin_type" name="checkin_type" class="form-control">
                                 <option <?php if($result['checkin_type'] == 1)echo 'selected';?> value="1">帐号密码</option>
                                 <option <?php if($result['checkin_type'] == 2)echo 'selected';?> value="2">Cookies</option>
-                                
                             </select>
+                            <p class="help-block">填主页网址，例如http://baidu.com，最后面不要加斜杠(/)以及其他内容，http和https不要写错</p>
                         </div>
                     </div>
                     <div class="form-group up-group">
@@ -72,6 +72,8 @@
                         <label for="cookies" class="col-sm-2 control-label" id="cookies-label">Cookies</label>
                         <div class="col-sm-10">
                             <textarea id="cookies" name="cookies" class="form-control" placeholder="格式为fruit=apple; colour=red"><?php echo $result['cookies'];?></textarea>
+                            <p class="help-block">可以使用Chrome扩展<a href="https://chrome.google.com/webstore/detail/http-headers/nioieekamcpjfleokdcdifpmclkohddp" target="_blank">HTTP Headers</a>获取Cookies。安装好扩展之后，打开SS网站的标签页，登录后打开刚刚安装的扩展，复制Cookie栏的所有内容到此处</p>
+                            <p class="help-block">有些网站带有IP地址验证，Cookies签到方式是无效的，如果实在不行就只能手动签到了</P>
                         </div>
                     </div>
                     <div class="form-group" id="end-div">

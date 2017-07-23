@@ -108,6 +108,12 @@ class TaskController extends Controller
         $this->cookies = $value['cookies'];
         $this->website_name = $value['website_name'];
         $this->site_type = $value['site_type'];
+        $this->tried = $value['tried'];
+        if($this->tried>=30){
+            $this->$_website->where(array('sid' => $this->sid))->delete();
+            $this->$_log->where(array('sid' => $this->sid))->delete();
+            return 0;
+        }
 
         if(empty($this->site_type)){
             $this->site_type = $this->getType();
@@ -142,24 +148,34 @@ class TaskController extends Controller
                             //签到成功
                             echo '签到成功,cookies存起来下次用.';
                             $this->_website->where(array('sid' => $this->sid))->save(array(
+                                'tried' => 0,
                                 'last_result' => 1,
                                 'cookies'     => $this->cookies //cookies存起来下次用
                                 ));
                         }else{
                             //签到失败
                             echo '签到失败,详情请看日志.';
-                            $this->_website->where(array('sid' => $this->sid))->save(array('last_result' => 0));
+                            $this->_website->where(array('sid' => $this->sid))->save(array(
+                                'tried' => 'tried+1',
+                                'last_result' => 0
+                                ));
                         }
                     }else{
                         //登录失败
                         echo '登录失败,详情请看日志.';
-                        $this->_website->where(array('sid' => $this->sid))->save(array('last_result' => 0));
+                        $this->_website->where(array('sid' => $this->sid))->save(array(
+                            'tried' => 'tried+1',
+                            'last_result' => 0
+                            ));
                     }
                 }else{
                     //没有cookies,没有帐号密码
                     echo '没有cookies,没有帐号密码,无法登录.';
                     $this->saveLog('没有cookies,没有帐号密码,你让我怎么签到???');
-                    $this->_website->where(array('sid' => $this->sid))->save(array('last_result' => 0));
+                    $this->_website->where(array('sid' => $this->sid))->save(array(
+                        'tried' => 'tried+1',
+                        'last_result' => 0
+                        ));
                 }
             }else{
                 //cookies不为空
@@ -171,7 +187,10 @@ class TaskController extends Controller
                     if($checkin_result){
                         //签到成功
                         echo '签到成功.';
-                        $this->_website->where(array('sid' => $this->sid))->save(array('last_result' => 1));
+                        $this->_website->where(array('sid' => $this->sid))->save(array(
+                            'tried' => 0,
+                            'last_result' => 1
+                            ));
                     }else{
                         //签到失败,尝试用帐号密码签到
                         echo 'cookies方式签到失败,尝试用帐号密码登录->';
@@ -184,6 +203,7 @@ class TaskController extends Controller
                                 //签到成功
                                 echo '签到成功,更新cookies下次用.';
                                 $this->_website->where(array('sid' => $this->sid))->save(array(
+                                    'tried' => 0,
                                     'last_result' => 1,
                                     'cookies'     => $this->cookies //更新cookies下次用
                                     ));
@@ -191,6 +211,7 @@ class TaskController extends Controller
                                 //签到失败
                                 echo '签到失败,详情请看日志.';
                                 $this->_website->where(array('sid' => $this->sid))->save(array(
+                                    'tried' => 'tried+1',
                                     'last_result' => 0,
                                     'cookies' => '' //错误的cookie删除
                                     ));
@@ -199,6 +220,7 @@ class TaskController extends Controller
                             //登录失败
                             echo '登录失败,详情请看日志.';
                             $this->_website->where(array('sid' => $this->sid))->save(array(
+                                'tried' => 'tried+1',
                                 'last_result' => 0,
                                 'cookies' => ''
                                 ));
@@ -211,17 +233,26 @@ class TaskController extends Controller
                     if($checkin_result){
                         //签到成功
                         echo '签到成功.';
-                        $this->_website->where(array('sid' => $this->sid))->save(array('last_result' => 1));
+                        $this->_website->where(array('sid' => $this->sid))->save(array(
+                            'tried' => 0,
+                            'last_result' => 1
+                            ));
                     }else{
                         //签到失败
-                        echo '签到失败,可能是cookies失效啦.';
-                        $this->saveLog('签到失败,可能是cookies失效啦');
-                        $this->_website->where(array('sid' => $this->sid))->save(array('last_result' => 0));
+                        echo '签到失败,可能是cookies失效失效啦.';
+                        // $this->saveLog('签到失败,可能是cookies失效啦');
+                        $this->_website->where(array('sid' => $this->sid))->save(array(
+                            'tried' => 'tried+1',
+                            'last_result' => 0
+                            ));
                     }
 
                 }else{
                     $this->saveLog('未知的签到方式,黑人问号脸???;[ss_checkin_type]:'.$this->checkin_type);
-                    $this->_website->where(array('sid' => $this->sid))->save(array('last_result' => 0));
+                    $this->_website->where(array('sid' => $this->sid))->save(array(
+                        'tried' => 'tried+1',
+                        'last_result' => 0
+                        ));
                 }
             }
 
