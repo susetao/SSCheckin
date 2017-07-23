@@ -155,27 +155,21 @@ class TaskController extends Controller
                         }else{
                             //签到失败
                             echo '签到失败,详情请看日志.';
-                            $this->_website->where(array('sid' => $this->sid))->save(array(
-                                'tried' => 'tried+1',
-                                'last_result' => 0
-                                ));
+                            $this->_website->where(array('sid' => $this->sid))->save(array('last_result' => 0));
+                            $this->_website->where(array('sid' => $this->sid))->setInc('tried');
                         }
                     }else{
                         //登录失败
                         echo '登录失败,详情请看日志.';
-                        $this->_website->where(array('sid' => $this->sid))->save(array(
-                            'tried' => 'tried+1',
-                            'last_result' => 0
-                            ));
+                        $this->_website->where(array('sid' => $this->sid))->save(array('last_result' => 0));
+                        $this->_website->where(array('sid' => $this->sid))->setInc('tried');
                     }
                 }else{
                     //没有cookies,没有帐号密码
                     echo '没有cookies,没有帐号密码,无法登录.';
                     $this->saveLog('没有cookies,没有帐号密码,你让我怎么签到???');
-                    $this->_website->where(array('sid' => $this->sid))->save(array(
-                        'tried' => 'tried+1',
-                        'last_result' => 0
-                        ));
+                    $this->_website->where(array('sid' => $this->sid))->save(array('last_result' => 0));
+                    $this->_website->where(array('sid' => $this->sid))->setInc('tried');
                 }
             }else{
                 //cookies不为空
@@ -211,19 +205,19 @@ class TaskController extends Controller
                                 //签到失败
                                 echo '签到失败,详情请看日志.';
                                 $this->_website->where(array('sid' => $this->sid))->save(array(
-                                    'tried' => 'tried+1',
                                     'last_result' => 0,
                                     'cookies' => '' //错误的cookie删除
                                     ));
+                                $this->_website->where(array('sid' => $this->sid))->setInc('tried');
                             }
                         }else{
                             //登录失败
                             echo '登录失败,详情请看日志.';
                             $this->_website->where(array('sid' => $this->sid))->save(array(
-                                'tried' => 'tried+1',
                                 'last_result' => 0,
                                 'cookies' => ''
                                 ));
+                            $this->_website->where(array('sid' => $this->sid))->setInc('tried');
                         }
                     }
 
@@ -241,21 +235,16 @@ class TaskController extends Controller
                         //签到失败
                         echo '签到失败,可能是cookies失效失效啦.';
                         // $this->saveLog('签到失败,可能是cookies失效啦');
-                        $this->_website->where(array('sid' => $this->sid))->save(array(
-                            'tried' => 'tried+1',
-                            'last_result' => 0
-                            ));
+                        $this->_website->where(array('sid' => $this->sid))->save(array('last_result' => 0));
+                        $this->_website->where(array('sid' => $this->sid))->setInc('tried');
                     }
 
                 }else{
                     $this->saveLog('未知的签到方式,黑人问号脸???;[ss_checkin_type]:'.$this->checkin_type);
-                    $this->_website->where(array('sid' => $this->sid))->save(array(
-                        'tried' => 'tried+1',
-                        'last_result' => 0
-                        ));
+                    $this->_website->where(array('sid' => $this->sid))->save(array('last_result' => 0));
+                    $this->_website->where(array('sid' => $this->sid))->setInc('tried');
                 }
             }
-
         }
     }
 
