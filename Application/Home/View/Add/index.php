@@ -28,12 +28,14 @@
                         <option value="1">帐号密码</option>
                         <option value="2">Cookies</option>
                     </select>
+                    <p class="help-block">如果网站登录需要验证码或者滑块验证，请使用Cookies方式签到</p>
                 </div>
             </div>
             <div class="form-group">
                 <label for="url" class="col-sm-2 control-label">(*)URL</label>
                 <div class="col-sm-10">
                     <input type="url" class="form-control" id="website" name="website" required>
+                    <p class="help-block">填主页网址，例如http://baidu.com，最后面不要加斜杠(/)以及其他内容，http和https不要写错</p>
                 </div>
             </div>
             <div class="form-group up-group">
@@ -52,6 +54,7 @@
                 <label for="cookies" class="col-sm-2 control-label" id="cookies-label">Cookies</label>
                 <div class="col-sm-10">
                     <textarea id="cookies" name="cookies" class="form-control" placeholder="格式为fruit=apple; colour=red"></textarea>
+                    <p class="help-block">可以使用Chrome扩展<a href="https://chrome.google.com/webstore/detail/http-headers/nioieekamcpjfleokdcdifpmclkohddp" target="_blank">HTTP Headers</a>获取Cookies。安装好扩展之后，打开SS网站的标签页，登录后打开刚刚安装的扩展。复制Cookie栏的所有内容到此处</p>
                 </div>
             </div>
             <div class="form-group" id="end-div">

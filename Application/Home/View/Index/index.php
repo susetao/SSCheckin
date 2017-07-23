@@ -22,7 +22,7 @@
                 <th>#</th>
                 <th>站点</th>
                 <th>用户名</th>
-                <th>上次签到时间</th>
+                <th>上次签到时间<a data-toggle="tooltip" title="这是从网站上直接抓取的时间，因为服务器时区设置可能不一样，这里显示的时间可能和你当地时间不一样">(?)</a></th>
                 <th>上次签到结果</th>
                 <th>剩余流量</th>
                 <th>编辑</th>
@@ -81,6 +81,8 @@
 <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
 <script type="text/javascript">
+$(function () { $("[data-toggle='tooltip']").tooltip(); });
+
 $('#checkin').on('click',function(){
     $('#Checkin-modal').modal('show');
     $('#Checkin-body').load('<?php echo U('/Home/Index/userRequire?id='.session('uid'));?>','',function(response,status,xhr){

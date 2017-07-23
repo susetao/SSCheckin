@@ -21,7 +21,7 @@
                         <li role="presentation"><a href="#register" aria-controls="register" role="tab" data-toggle="tab">注册</a></li>
                     </ul>
                     <div class="tab-content">
-                        <div role="tabpanel" class="tab-pane active" id="login">
+                        <div role="tabpanel" class="tab-pane active" id="login"><br/>
                             <form class="form-horizontal" action="<?php echo U('Home/Login/login'); ?>" method="post">
                                 <div class="form-group">
                                     <label for="username" class="col-sm-2 control-label">帐号</label>
@@ -37,18 +37,50 @@
                                 </div>
                                 <div class="form-group">
                                     <div class="col-sm-offset-2 col-sm-10">
+                                    <p class="help-block">如果你忘了帐号或密码，那么自求多福吧ヾ(o◕∀◕)ﾉヾ</p>
                                     <input type="submit" class="btn btn-default">
                                     </div>
                                 </div>
                             </form>
                         </div>
 
-                        <div role="tabpanel" class="tab-pane text-center" id="register">
-                            <p>暂未开放</p>
+                        <div role="tabpanel" class="tab-pane text-center" id="register"><br/>
+                            <form class="form-horizontal" action="<?php echo U('Home/Login/signup'); ?>" method="post">
+                                <div class="form-group">
+                                    <label for="user" class="col-sm-2 control-label">帐号</label>
+                                    <div class="col-sm-10">
+                                        <input type="text" class="form-control" id="user" name="username" placeholder="Username" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="pass" class="col-sm-2 control-label">密码</label>
+                                    <div class="col-sm-10">
+                                        <input type="password" class="form-control" id="pass" name="password" placeholder="Password" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="repass" class="col-sm-2 control-label">重复密码</label>
+                                    <div class="col-sm-10">
+                                    <input type="password" class="form-control" id="repass" name="repassword" placeholder="Re-Password" required>
+                                </div>
+                                </div>
+                                 <!-- <div class="form-group">
+                                    <label for="code" class="col-sm-2 control-label">验证码</label>
+                                    <div class="col-sm-6">
+                                        <input type="code" class="form-control" id="code" name="code" placeholder="Verification Code" required>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <img id="verify" class="pull-left" src="" width="100%" title="点击刷新" alt="验证码">
+                                    </div>
+                                </div>  -->
+                                <div class="form-group">
+                                    <div class="col-sm-offset-2 col-sm-10">
+                                    <input type="submit" class="btn btn-default pull-left">
+                                    </div>
+                                </div>
+                            </form>
                         </div>
                     </div>
-
-
                 </div>
             </div>
         </div>    
@@ -59,15 +91,13 @@
 <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
 <script>
-    // $('#login').click(function (e) {
-    //     e.preventDefault()
-    //     $(this).tab('show')
-    // })
+    refreshCode();
 
-    // $('#registe').click(function (e) {
-    //     e.preventDefault()
-    //     $(this).tab('show')
-    // })
+    $('#verify').on('click',refreshCode)
+
+    function refreshCode(){
+        $('#verify').attr('src','<?php echo U('Home/Login/verify');?>');
+    }
 </script>
 </body>
 </html>

@@ -2,21 +2,32 @@
 namespace Home\Controller;
 
 class ModifyController extends LoginCheckController{
+    public function __construct(){
+        parent::__construct();
+        if(empty(I("get.id"))){
+            return $this->error('非法请求');
+        }        
+
+        $this->sid = I("get.id");
+        $this->uid = session('uid');
+
+        $result = D('website')->where(array('uid'=>$this->uid,'sid'=>$this->sid))->find();
+        if(empty($result)){
+            return $this->error('非法请求');
+        }
+    }
+
     public function index()
     {
-        $this->chcek();
-        $sid = I("get.id");
-
-        $result = D('website')->where('sid='.$sid)->find();
+        $result = D('website')->where(array('sid'=>$this->sid))->find();
         $this->assign('result',$result);
         $this -> display();
     }
 
     public function del()
     {
-        $this->chcek();
-        $sid = I('get.id');
-        if(D("website")->where("sid=".$sid)->delete()){
+        if(D("website")->where(array('sid'=>$this->sid))->delete()){
+            D('log')->where(array('sid'=>$this->sid))->delete();
             $this->success('删除成功','/Home/');
         }else{
             $this->error('删除失败');
@@ -25,9 +36,7 @@ class ModifyController extends LoginCheckController{
 
     public function mod()
     {
-        $this->chcek();
         if(IS_POST){
-            $sid = I('get.id');
             $checkin_type = I('post.checkin_type');
             $website_name = I('post.website_name');
             $website = I('post.website');
@@ -52,7 +61,7 @@ class ModifyController extends LoginCheckController{
                 return $this->error('非法请求');
             }
 
-            $result = D('website')->where('sid='.$sid)->save(array(
+            $result = D('website')->where(array('sid'=>$this->sid))->save(array(
                 'checkin_type' => $checkin_type,
                 'website' => $website,
                 'website_name' => $website_name,
@@ -73,11 +82,9 @@ class ModifyController extends LoginCheckController{
 
     public function log()
     {
-        $this->chcek();
-        $sid = I("get.id");
-        $result = D('log')->where('sid='.$sid)->order('id DESC')->limit(30)->select();
+        $result = D('log')->where(array('sid'=>$this->sid))->order('id DESC')->limit(10)->select();
         echo '<table class="table"><tr><th>时间</th><th>日志</th></tr>';
-        foreach ($result as $key => $value) {
+        foreach ($result as $value) {
             # code...
             echo '<tr>';
             echo '<td>';
@@ -92,14 +99,11 @@ class ModifyController extends LoginCheckController{
     }
     public function clearCache()
     {
-        $this->chcek();
-        $sid = I("get.id");
-        $result = D('website')->where('sid='.$sid)->field('checkin_type')->find();
+        $result = D('website')->where('sid='.$this->sid)->field('checkin_type')->find();
         $checkin_type = $result['checkin_type'];
         switch ($checkin_type) {
             case '1':
-                # code...
-                $result = D('website')->where('sid='.$sid)->save(array(
+                $result = D('website')->where('sid='.$this->sid)->save(array(
                     'website_name' => '',
                     'cookies' => '',
                     'site_type' => ''
@@ -107,8 +111,7 @@ class ModifyController extends LoginCheckController{
                 break;
 
             case '2':
-            # code...
-                $result = D('website')->where('sid='.$sid)->save(array(
+                $result = D('website')->where('sid='.$this->sid)->save(array(
                     'website_name' => '',
                     'username' => '',
                     'site_type' => ''
@@ -121,21 +124,9 @@ class ModifyController extends LoginCheckController{
         }
 
         if ($result) {
-            # code...
             $this->success('清除缓存成功');
         }else{
             $this->error('清除缓存失败');
-        }
-    }
-
-    private function chcek(){
-        if(empty(I("get.id"))){
-            return $this->error('非法请求');
-        }
-
-        $result = D('website')->where(array('uid'=>session('uid'),'sid'=>I("get.id")));
-        if(empty($result)){
-            return $this->error('非法请求');
         }
     }
 }

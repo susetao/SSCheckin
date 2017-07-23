@@ -9,6 +9,8 @@ class AddController extends LoginCheckController{
     
     public function add()
     {
+        $_website = D('website');
+
         if(IS_POST){
            $website = I("post.website");
            $checkin_type = I("post.checkin_type");
@@ -37,16 +39,23 @@ class AddController extends LoginCheckController{
             break;
 
             default:
-            $this->error('非法请求');
+            return $this->error('非法请求');
         }
 
-        $result = D('website')->add(array(
-            'checkin_type' => 1,
+        $result = $_website->where(array('uid'=>session('uid'),'website'=>$website,'username'=>$suser,'password'=>$spass))->field('sid')->find();
+        if($result){
+            $this->error('请勿重复添加签到任务');
+        }
+
+        $result = $_website->add(array(
+            'uid' => session('uid'),
+            'checkin_type' => $checkin_type,
             'website' => $website,
             'username' => $suser,
             'password' => $spass,
             'cookies' => $cookies
         ));
+
         if($result){
             $this->success('添加成功','/Home/');
         }else{
