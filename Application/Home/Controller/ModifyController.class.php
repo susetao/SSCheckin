@@ -37,9 +37,18 @@ class ModifyController extends LoginCheckController{
     public function mod()
     {
         if(IS_POST){
+            $website = I("post.website");
+            if(empty($website)){
+                return $this->error('你是不是忘记输入URL了呢');
+            }
+
+            $website = $this->correctURL(I("post.website"));
+            if(!$website){
+                return $this->error('URL格式不正确');
+            }
+
             $checkin_type = I('post.checkin_type');
             $website_name = I('post.website_name');
-            $website = I('post.website');
             $suser = I('post.suser');
             $spass = I('post.spass');
             $cookies = I('post.cookies');
@@ -128,5 +137,18 @@ class ModifyController extends LoginCheckController{
         }else{
             $this->error('清除缓存失败');
         }
+    }
+
+    protected function correctURL($url){
+        $url = strtolower($url);
+        if((strpos($url,'http://') !== 0) && (strpos($url,'https://') !== 0)){
+            return false;
+        }
+
+        while (substr_count($url,'/')>2) {
+            $url = substr($url,0,strrpos($url,'/'));
+        }
+
+        return $url;
     }
 }

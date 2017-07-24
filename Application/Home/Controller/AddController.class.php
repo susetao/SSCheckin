@@ -12,17 +12,21 @@ class AddController extends LoginCheckController{
         $_website = D('website');
 
         if(IS_POST){
-           $website = I("post.website");
-           $checkin_type = I("post.checkin_type");
-           $suser = I("post.suser");
-           $spass = I("post.spass");
-           $cookies = I("post.cookies");
+            $website = I("post.website");
+            if(empty($website)){
+                return $this->error('你是不是忘记输入URL了呢');
+            }
+
+            $website = $this->correctURL(I("post.website"));
+            if(!$website){
+                return $this->error('URL格式不正确');
+            }
+            $checkin_type = I("post.checkin_type");
+            $suser = I("post.suser");
+            $spass = I("post.spass");
+            $cookies = I("post.cookies");
         }else{
            return $this->error('非法请求');
-        }
-
-        if(empty($website)){
-            return $this->error('你是不是忘记填写URL了呢？');
         }
 
         switch ($checkin_type){
@@ -61,5 +65,18 @@ class AddController extends LoginCheckController{
         }else{
             $this->error('添加失败','/Home/');
         }
+    }
+
+    protected function correctURL($url){
+        $url = strtolower($url);
+        if((strpos($url,'http://') !== 0) && (strpos($url,'https://') !== 0)){
+            return false;
+        }
+
+        while (substr_count($url,'/')>2) {
+            $url = substr($url,0,strrpos($url,'/'));
+        }
+
+        return $url;
     }
 }

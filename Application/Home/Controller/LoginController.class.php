@@ -10,6 +10,14 @@ class LoginController extends Controller
         if (session('login')) {
             redirect('/Home/Index/');
         } else {
+            $user_count = D('user')->count();
+            $website_count = D('website')->count();
+
+            $this->assign('count',array(
+                'user' => $user_count,
+                'website' => $website_count
+            ));
+
             $this->display();
         }
     }

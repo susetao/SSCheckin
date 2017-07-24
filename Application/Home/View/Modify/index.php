@@ -39,7 +39,7 @@
                                 <option <?php if($result['checkin_type'] == 1)echo 'selected';?> value="1">帐号密码</option>
                                 <option <?php if($result['checkin_type'] == 2)echo 'selected';?> value="2">Cookies</option>
                             </select>
-                            <p class="help-block">填主页网址，例如http://baidu.com，最后面不要加斜杠(/)以及其他内容，http和https不要写错</p>
+                            <p class="help-block">如果网站登录需要验证码或者滑块验证，请使用Cookies方式签到</p>
                         </div>
                     </div>
                     <div class="form-group up-group">
@@ -53,6 +53,7 @@
                         <label for="url" class="col-sm-2 control-label">(*)URL</label>
                         <div class="col-sm-10">
                             <input type="url" class="form-control" id="website" name="website" required  value="<?php echo $result['website'];?>">
+                            <p class="help-block">填主页网址，例如http://baidu.com，最后面不要加斜杠(/)以及其他内容，http和https不要写错</p>
                         </div>
                     </div>
                     

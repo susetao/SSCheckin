@@ -9,5 +9,6 @@ return array(
     'DB_PORT'               =>  '3306',        // 端口
     'DB_CHARSET'            =>  'utf8',      // 数据库编码默认采用utf8
     'TMPL_TEMPLATE_SUFFIX'  =>  '.php',
+    'DEFAULT_TIMEZONE'      =>  'PRC',
     'WEB_TITLE'             =>  'SSCheckin'
 );

@@ -10,7 +10,13 @@
 <div class="container">
     <div class="jumbotron">
         <h1>欢迎访问{$Think.config.WEB_TITLE}！</h1>
-        <p>这是一个SS网站自动签到的网站，你需要登录才能查看更多内容！</p>
+        <?php
+        if(empty($count)){
+            echo '<p>这是一个SS网站自动签到的网站，你需要登录才能查看更多内容！</p>';
+        }else{
+            echo '<p>我们正在为<code>'.$count['user'].'</code>位用户的<code>'.$count['website'].'</code>个网站提供签到服务，欢迎你的加入！</p>';
+        }
+        ?>
     </div>
     <div class="row">
         <div class="col-md-6 col-md-push-3">
@@ -47,19 +53,19 @@
                         <div role="tabpanel" class="tab-pane text-center" id="register"><br/>
                             <form class="form-horizontal" action="<?php echo U('Home/Login/signup'); ?>" method="post">
                                 <div class="form-group">
-                                    <label for="user" class="col-sm-2 control-label">帐号</label>
+                                    <label for="user" class="col-sm-2 control-label pull-left">帐号</label>
                                     <div class="col-sm-10">
                                         <input type="text" class="form-control" id="user" name="username" placeholder="Username" required>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label for="pass" class="col-sm-2 control-label">密码</label>
+                                    <label for="pass" class="col-sm-2 control-label pull-left">密码</label>
                                     <div class="col-sm-10">
                                         <input type="password" class="form-control" id="pass" name="password" placeholder="Password" required>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label for="repass" class="col-sm-2 control-label">重复密码</label>
+                                    <label for="repass" class="col-sm-2 control-label pull-left">重复密码</label>
                                     <div class="col-sm-10">
                                     <input type="password" class="form-control" id="repass" name="repassword" placeholder="Re-Password" required>
                                 </div>

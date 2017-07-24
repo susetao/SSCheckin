@@ -16,12 +16,13 @@ class TaskController extends Controller
 
     public function index()
     {
-        $num_once = 5;
+        $num_once = 10;
 
         //读上一次的位置
         $result = $this->_log->where('sid=0 and result!="userRequire"')->order('id DESC')->find();
         $last_id = $result['result'];
         $last_time = $result['time'];
+        $last_log_id = $result['id'];
         if($last_time){
             if(strtotime($last_time.' +1 minute') > strtotime('now')){            
                 echo '午时未到ヽ(●-`Д´-)ノ';
@@ -29,24 +30,21 @@ class TaskController extends Controller
             }
         }
 
-        if(empty($last_id)){
+        $result = $this->_website->order('sid DESC')->find();
+        $max_id = $result['sid'];
+
+        if(empty($last_id) || $last_id == $max_id){
             $last_id = 0;
         }
 
-        $result = $this->_website->where('sid>'.$last_id)->field('sid')->limit($num_once)->select();
-
-        if(count($result) < $num_once){
-            $result_ = $this->_website->field('sid')->limit($num_once - count($result))->select();
-            $checkin_query = array_merge($result,$result_);
-        }else{
-            $checkin_query = $result;
-        }
+        $checkin_query = $this->_website->where('sid>'.$last_id)->field('sid')->limit($num_once)->select();
 
         $this->_log->add(array(
             'time' => date('Y-m-d H:i:s'),
             'sid' => 0,
             'result' => $checkin_query[count($checkin_query) - 1]['sid']
         ));
+        $this->_log->where('id='.$last_log_id)->delete();
 
         foreach ($checkin_query as $value) {
             $this->checkin($value['sid']);
@@ -58,6 +56,7 @@ class TaskController extends Controller
             //读上一次的时间
             $result = $this->_log->where('sid=0 and result="userRequire"')->order('id DESC')->find();
             $last_time = $result['time'];
+            $last_log_id = $result['id'];
             if($last_time){
                 if(strtotime($last_time.' +2 minute') > strtotime('now')){            
                     echo '午时未到ヽ(●-`Д´-)ノ';
@@ -65,15 +64,16 @@ class TaskController extends Controller
                 }
             }
 
-            $this->_log->add(array(
-                'time' => date('Y-m-d H:i:s'),
-                'sid' => 0,
-                'result' => 'userRequire'
-            ));
-
             $result = $this->_user->where('`require`=1')->field('uid')->find();
             $uid = $result['uid'];
             if($uid){
+                $this->_log->add(array(
+                    'time' => date('Y-m-d H:i:s'),
+                    'sid' => 0,
+                    'result' => 'userRequire'
+                ));
+                $this->_log->where('id='.$last_log_id)->delete();
+                
                 $result = $this->_website->where('uid='.$uid)->field('sid')->select();
                 foreach ($result as $value) {
                     $this->checkin($value['sid']);
@@ -82,23 +82,12 @@ class TaskController extends Controller
             }
         }
 
-        protected function checkin($sid = 0)
+        protected function checkin($sid)
     {
         $this->sid = $sid;
 
         ini_set('max_execution_time', 300);
         
-        if($this->sid == 0){
-            echo '<table class="table">';
-            foreach ($this->_website->field('sid')->select() as $value) {
-                echo '<tr><td>';
-                $this->checkin($value['sid']);
-                echo '</td></tr>';
-            }
-            echo '</table>';
-            return;
-        }
-
         $value = $this->_website->where(array('sid' => $this->sid))->find();
 
         $this->website = $value['website'];
@@ -109,9 +98,10 @@ class TaskController extends Controller
         $this->website_name = $value['website_name'];
         $this->site_type = $value['site_type'];
         $this->tried = $value['tried'];
-        if($this->tried>=30){
-            $this->$_website->where(array('sid' => $this->sid))->delete();
-            $this->$_log->where(array('sid' => $this->sid))->delete();
+        $this->last_result = $value['last_result'];
+        if($value['tried'] >= 30){
+            $this->_website->where(array('sid' => $this->sid))->delete();
+            $this->_log->where(array('sid' => $this->sid))->delete();
             return 0;
         }
 
@@ -124,7 +114,13 @@ class TaskController extends Controller
             return;
         }
 
-        echo $this->sid.':';
+        echo '<br/>'.$this->sid.':';
+
+        $result = $this->_log->where('sid='.$this->sid)->order('id DESC')->find();
+        if($this->last_result && strtotime($result['time'].' +30 minutes') > strtotime('now')){
+            echo '跳过';
+            return 0;
+        }
         
         //获取网站访问状态
         $headers = get_headers($this->website);
@@ -133,6 +129,7 @@ class TaskController extends Controller
             echo '网站不能正常访问，停止执行签到任务.';
             $this->saveLog('网站不能正常访问，停止执行签到任务;[Responce_Code]:' . $responce_code . ';[HTTP_header]:' . implode(' ',$headers));
             $this->_website->where(array('sid' => $this->sid))->save(array('last_result' => 0));
+            $this->_website->where(array('sid' => $this->sid))->setInc('tried');
         }else{
             //网站可访问检查完成，开始执行签到任务
             echo '网站可访问->';
@@ -275,12 +272,15 @@ class TaskController extends Controller
 
     protected function saveLog($log)
     {
+        $log = substr($log,0,255);//最大字符长度限制
+        $log = str_replace(PHP_EOL,' ',$log);//删除换行
         $result = $this->_log->where(array('sid' => $this->sid))->order('id DESC')->find();
         if($result['result'] == $log){
             $this->_log->where('id='.$result['id'])->delete();
         }
         //删除旧的，加入新的
         $this->_log->add(array(
+            'time' => date('Y-m-d H:i:s'),
             'sid' => $this->sid,
             'result' => $log
         ));
