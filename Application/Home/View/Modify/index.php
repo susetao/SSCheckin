@@ -85,6 +85,11 @@
                     </div>
                 </form>
             </div>
+            <?php
+            if(!empty($result['tried'])){
+                echo '<div class="panel-footer text-center"><span class="">连续失败：<code>',$result['tried'],'</code>；失败次数过多的签到任务会被系统删除。</span></div>';
+            }
+            ?>
         </div>
 
 

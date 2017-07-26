@@ -19,7 +19,7 @@ class TaskController extends Controller
         $num_once = 10;
 
         //读上一次的位置
-        $result = $this->_log->where('sid=0 and result!="userRequire"')->order('id DESC')->find();
+        $result = $this->_log->where('sid=0')->order('id DESC')->find();
         $last_id = $result['result'];
         $last_time = $result['time'];
         $last_log_id = $result['id'];
@@ -44,49 +44,127 @@ class TaskController extends Controller
             'sid' => 0,
             'result' => $checkin_query[count($checkin_query) - 1]['sid']
         ));
-        $this->_log->where('id='.$last_log_id)->delete();
+        if($last_log_id) $this->_log->where('id='.$last_log_id)->delete();
 
         foreach ($checkin_query as $value) {
             $this->checkin($value['sid']);
         }
     }
 
-        public function userRequire()
-        {
-            //读上一次的时间
-            $result = $this->_log->where('sid=0 and result="userRequire"')->order('id DESC')->find();
-            $last_time = $result['time'];
-            $last_log_id = $result['id'];
-            if($last_time){
-                if(strtotime($last_time.' +2 minute') > strtotime('now')){            
-                    echo '午时未到ヽ(●-`Д´-)ノ';
-                    return;
-                }
-            }
+    public function backup(){
+        ini_set('max_execution_time', 0);
+        $result = $this->_log->where('sid=1 and result="backup"')->order('id DESC')->find();
 
-            $result = $this->_user->where('`require`=1')->field('uid')->find();
-            $uid = $result['uid'];
-            if($uid){
-                $this->_log->add(array(
-                    'time' => date('Y-m-d H:i:s'),
-                    'sid' => 0,
-                    'result' => 'userRequire'
-                ));
-                $this->_log->where('id='.$last_log_id)->delete();
-                
-                $result = $this->_website->where('uid='.$uid)->field('sid')->select();
-                foreach ($result as $value) {
-                    $this->checkin($value['sid']);
-                }
-                $this->_user->where('uid='.$uid)->save(array('require'=>0));
+        $last_time = $result['time'];
+        $last_log_id = $result['id'];
+
+        if($last_time){
+            if(strtotime($last_time.' +60 minutes') > strtotime('now')){            
+                echo '午时未到ヽ(●-`Д´-)ノ';
+                return;
             }
         }
+        
+        $result = $this->_user->select();
+        $sql_user = '';
+        foreach ($result as $value) {
+            $uid = $value['uid'];
+            $username = $value['username'];
+            $password = $value['password'];
+            $require = $value['require'];
+            $register_time = $value['register_time'];
+            $login_time = $value['login_time'];
+            $sql_user .= "INSERT INTO `user` (`uid`, `username`, `password`, `require`, `register_time`, `login_time`) VALUES ('$uid', '$username', '$password', '$require', '$register_time', '$login_time');\n";
+        }
+
+        $result = $this->_website->select();
+        $sql_website = '';
+        foreach ($result as $value) {
+            $sid = $value['sid'];
+            $uid = $value['uid'];
+            $website = $value['website'];
+            $website_name = $value['website_name'];
+            $username = $value['username'];
+            $password = $value['password'];
+            $cookies = $value['cookies'];
+            $checkin_type = $value['checkin_type'];
+            $last_result = $value['last_result'];
+            $last_time = $value['last_time'];
+            $data_remain = $value['data_remain'];
+            $tried = $value['tried'];
+            $sql_website .= "INSERT INTO `website` (`sid`, `uid`, `website`, `username`, `password`, `cookies`, `checkin_type`, `last_result`, `tried`) VALUES ('$sid', '$uid', '$website', '$username', '$password', '$cookies', '$checkin_type', '0', '$tried');\n";
+        }
+
+        $filename = 'SSCheckin-backup'.date('Y-m-d-H-i-s').'.sql';
+        if(file_put_contents($filename,$sql_user.$sql_website)){
+            $ftp_server = 'files.000webhost.com';
+            $ftp_user_name = 'yorkist-stator';
+            $ftp_user_pass = '123456789';
+            $conn_id = ftp_connect($ftp_server);
+            $login_result = ftp_login($conn_id, $ftp_user_name, $ftp_user_pass);
+            if($conn_id && $login_result){
+                if(ftp_put($conn_id,$filename,$filename,FTP_BINARY)){
+                    echo '备份成功';
+                }else{
+                    echo '上传到FTP服务器失败';
+                    return;
+                }
+
+            }else{
+                echo 'FTP连接失败';
+                return;
+            }
+        }else{
+            echo '写入文件失败';
+            return;
+        }
+
+        ftp_close($conn_id);
+        
+        $this->_log->add(array(
+            'time' => date('Y-m-d H:i:s'),
+            'sid' => 1,
+            'result' => 'backup'
+            ));
+        if($last_log_id) $this->_log->where('id='.$last_log_id)->delete();
+    }
+
+    public function userRequire()
+    {
+        //读上一次的时间
+        $result = $this->_log->where('sid=1 and result="userRequire"')->order('id DESC')->find();
+        $last_time = $result['time'];
+        $last_log_id = $result['id'];
+        if($last_time){
+            if(strtotime($last_time.' +2 minute') > strtotime('now')){            
+                echo '午时未到ヽ(●-`Д´-)ノ';
+                return;
+            }
+        }
+
+        $result = $this->_user->where('`require`=1')->field('uid')->find();
+        $uid = $result['uid'];
+        if($uid){
+            $this->_log->add(array(
+                'time' => date('Y-m-d H:i:s'),
+                'sid' => 1,
+                'result' => 'userRequire'
+            ));
+            if($last_log_id) $this->_log->where('id='.$last_log_id)->delete();
+            
+            $result = $this->_website->where('uid='.$uid)->field('sid')->select();
+            foreach ($result as $value) {
+                $this->checkin($value['sid']);
+            }
+            $this->_user->where('uid='.$uid)->save(array('require'=>0));
+        }
+    }
 
         protected function checkin($sid)
     {
         $this->sid = $sid;
 
-        ini_set('max_execution_time', 300);
+        ini_set('max_execution_time', 0);
         
         $value = $this->_website->where(array('sid' => $this->sid))->find();
 
@@ -117,7 +195,7 @@ class TaskController extends Controller
         echo '<br/>'.$this->sid.':';
 
         $result = $this->_log->where('sid='.$this->sid)->order('id DESC')->find();
-        if($this->last_result && strtotime($result['time'].' +30 minutes') > strtotime('now')){
+        if($this->last_result && strtotime($result['time'].' +60 minutes') > strtotime('now')){
             echo '跳过';
             return 0;
         }

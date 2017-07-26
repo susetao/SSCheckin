@@ -2,3 +2,4 @@ Application/Runtime/*
 *.zip
 .vscode
 config.php
+SSCheckin-backup*.sql
