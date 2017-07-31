@@ -3,3 +3,4 @@ Application/Runtime/*
 .vscode
 config.php
 SSCheckin-backup*.sql
+backup

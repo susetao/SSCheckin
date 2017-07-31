@@ -7,8 +7,9 @@ class TaskController extends Controller
 {
     public function __construct()
     {
+        ini_set('max_execution_time', 0);
         parent::__construct();
-        
+
         $this->_website = D('website');
         $this->_log = D('log');
         $this->_user = D('user');
@@ -24,7 +25,7 @@ class TaskController extends Controller
         $last_time = $result['time'];
         $last_log_id = $result['id'];
         if($last_time){
-            if(strtotime($last_time.' +1 minute') > strtotime('now')){            
+            if(strtotime($last_time.' +1 minute') > strtotime('now')){
                 echo '午时未到ヽ(●-`Д´-)ノ';
                 return;
             }
@@ -33,7 +34,7 @@ class TaskController extends Controller
         $result = $this->_website->order('sid DESC')->find();
         $max_id = $result['sid'];
 
-        if(empty($last_id) || $last_id == $max_id){
+        if(empty($last_id) || $last_id == $max_id || !is_numeric($last_id)){
             $last_id = 0;
         }
 
@@ -51,20 +52,69 @@ class TaskController extends Controller
         }
     }
 
+    protected function countNum($v = true)
+    {
+        if($v){
+            if(session('uid') != 1) return;
+        }
+
+        $arr = $this->_user->field('uid')->select();
+        foreach ($arr as $value) {
+            $uid = $value['uid'];
+            $website_num = $this->_website->where("uid=$uid")->count();
+            echo $uid,':',$website_num,'<br/>';
+            $this->_user->where("uid=$uid")->save(array('website_num'=>$website_num));
+        }
+    }
+
+    public function month()
+    {
+        if(date('j') != 1) return;
+
+        $this->countNum(false);
+
+        $this_year = date('Y');
+        $last_year = $this_year - 1;
+        $this_month = date('n');
+        $last_month = $this_month - 1;
+
+        $last_time = $this->_log->where('sid=1 and result="empty"')->getField('time');
+        if($last_time){
+            if(date_format(date_create($last_time),'n') == $this_month) return;
+        }
+
+        $clear_time = "{$this_year}-{$last_month}-1";
+
+        if($last_month < 1) {
+            $clear_time = "{$last_year}-12-1";
+        }
+
+        $this->_user->where("register_time<'$clear_time' AND login_time<'$clear_time' AND website_num=0")->delete();
+        $Model = new \Think\Model();
+        $Model->execute("TRUNCATE log");
+        $this->_log->add(array(
+            'time' => date('Y-m-d H:i:s'),
+            'sid' => 1,
+            'result'=>'empty'
+            ));
+        echo '每月任务完成';
+    }
+
     public function backup(){
-        ini_set('max_execution_time', 0);
+        $this->month();
+
         $result = $this->_log->where('sid=1 and result="backup"')->order('id DESC')->find();
 
         $last_time = $result['time'];
         $last_log_id = $result['id'];
 
         if($last_time){
-            if(strtotime($last_time.' +60 minutes') > strtotime('now')){            
+            if(strtotime($last_time.' +60 minutes') > strtotime('now')){
                 echo '午时未到ヽ(●-`Д´-)ノ';
                 return;
             }
         }
-        
+
         $result = $this->_user->select();
         $sql_user = '';
         foreach ($result as $value) {
@@ -74,7 +124,8 @@ class TaskController extends Controller
             $require = $value['require'];
             $register_time = $value['register_time'];
             $login_time = $value['login_time'];
-            $sql_user .= "INSERT INTO `user` (`uid`, `username`, `password`, `require`, `register_time`, `login_time`) VALUES ('$uid', '$username', '$password', '$require', '$register_time', '$login_time');\n";
+            $ip = $value['ip'];
+            $sql_user .= "INSERT INTO `user` (`uid`, `username`, `password`, `require`, `register_time`, `login_time`, `ip`) VALUES ('$uid', '$username', '$password', '$require', '$register_time', '$login_time', '$ip');\n";
         }
 
         $result = $this->_website->select();
@@ -95,15 +146,33 @@ class TaskController extends Controller
             $sql_website .= "INSERT INTO `website` (`sid`, `uid`, `website`, `username`, `password`, `cookies`, `checkin_type`, `last_result`, `tried`) VALUES ('$sid', '$uid', '$website', '$username', '$password', '$cookies', '$checkin_type', '0', '$tried');\n";
         }
 
-        $filename = 'SSCheckin-backup'.date('Y-m-d-H-i-s').'.sql';
-        if(file_put_contents($filename,$sql_user.$sql_website)){
+        if(!file_exists('backup/')){
+            mkdir('backup/');
+        }
+
+        if(!file_exists('backup/'.date('Y-m-d'))){
+            mkdir('backup/'.date('Y-m-d'));
+        }
+
+        $date = date('Y-m-d');
+        $filename = date('H-i-s').'.sql';
+        $local_path = "backup/$date/$filename";
+        $remote_path = "backups/SSCheckin/$date/";
+
+        if(file_put_contents($local_path,$sql_user.$sql_website)){
             $ftp_server = 'files.000webhost.com';
             $ftp_user_name = 'yorkist-stator';
-            $ftp_user_pass = '123456789';
+            $ftp_user_pass = '12345678990';
+            // $ftp_server = '127.0.0.1';
+            // $ftp_user_name = '_ftp';
+            // $ftp_user_pass = '123';
             $conn_id = ftp_connect($ftp_server);
             $login_result = ftp_login($conn_id, $ftp_user_name, $ftp_user_pass);
             if($conn_id && $login_result){
-                if(ftp_put($conn_id,$filename,$filename,FTP_BINARY)){
+
+                ftp_mkdir($conn_id,$remote_path);
+
+                if(ftp_put($conn_id , $remote_path . $filename , $local_path , FTP_BINARY)){
                     echo '备份成功';
                 }else{
                     echo '上传到FTP服务器失败';
@@ -120,7 +189,7 @@ class TaskController extends Controller
         }
 
         ftp_close($conn_id);
-        
+
         $this->_log->add(array(
             'time' => date('Y-m-d H:i:s'),
             'sid' => 1,
@@ -136,7 +205,7 @@ class TaskController extends Controller
         $last_time = $result['time'];
         $last_log_id = $result['id'];
         if($last_time){
-            if(strtotime($last_time.' +2 minute') > strtotime('now')){            
+            if(strtotime($last_time.' +2 minute') > strtotime('now')){
                 echo '午时未到ヽ(●-`Д´-)ノ';
                 return;
             }
@@ -151,7 +220,7 @@ class TaskController extends Controller
                 'result' => 'userRequire'
             ));
             if($last_log_id) $this->_log->where('id='.$last_log_id)->delete();
-            
+
             $result = $this->_website->where('uid='.$uid)->field('sid')->select();
             foreach ($result as $value) {
                 $this->checkin($value['sid']);
@@ -164,8 +233,6 @@ class TaskController extends Controller
     {
         $this->sid = $sid;
 
-        ini_set('max_execution_time', 0);
-        
         $value = $this->_website->where(array('sid' => $this->sid))->find();
 
         $this->website = $value['website'];
@@ -177,7 +244,7 @@ class TaskController extends Controller
         $this->site_type = $value['site_type'];
         $this->tried = $value['tried'];
         $this->last_result = $value['last_result'];
-        if($value['tried'] >= 30){
+        if($value['tried'] >= 20){
             $this->_website->where(array('sid' => $this->sid))->delete();
             $this->_log->where(array('sid' => $this->sid))->delete();
             return 0;
@@ -199,7 +266,7 @@ class TaskController extends Controller
             echo '跳过';
             return 0;
         }
-        
+
         //获取网站访问状态
         $headers = get_headers($this->website);
         $responce_code = $this->getResponceCode($headers);
@@ -340,7 +407,7 @@ class TaskController extends Controller
         if(is_array($header)){
             $header = implode(' ',$header);
         }
-            
+
         if(preg_match('/(?<=HTTP\/1\.\d )\d{3}/',$header,$preg_results)){
             return $preg_results[0];
         }else{
@@ -467,7 +534,7 @@ class TaskController extends Controller
 
         curl_close($ch);
     }
-    
+
     protected function _checkin(){
         $ch = curl_init();
 
@@ -569,8 +636,8 @@ class TaskController extends Controller
                         $data_remain = array_pop($preg_results[0]);
                         $this->_website->where(array('sid' => $this->sid))->save(array('data_remain'=>$data_remain));
                     }
-                    if(preg_match_all('/(?<=<code>)\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/',$curl_result,$preg_results)){
-                        $last_time = array_pop($preg_results[0]);
+                    if(preg_match('/(?<=<code>)\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/',$curl_result,$preg_results)){
+                        $last_time = $preg_results[0];
                         $this->_website->where(array('sid' => $this->sid))->save(array('last_time'=>$last_time));
                     }
                     if(empty($this->website_name)){

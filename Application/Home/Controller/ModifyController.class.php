@@ -91,10 +91,9 @@ class ModifyController extends LoginCheckController{
 
     public function log()
     {
-        $result = D('log')->where(array('sid'=>$this->sid))->order('id DESC')->limit(10)->select();
+        $result = D('log')->where(array('sid'=>$this->sid))->order('id DESC')->limit(5)->select();
         echo '<table class="table"><tr><th>时间</th><th>日志</th></tr>';
         foreach ($result as $value) {
-            # code...
             echo '<tr>';
             echo '<td>';
             echo $value['time'];
