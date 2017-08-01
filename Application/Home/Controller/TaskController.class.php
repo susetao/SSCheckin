@@ -243,10 +243,16 @@ class TaskController extends Controller
         $this->website_name = $value['website_name'];
         $this->site_type = $value['site_type'];
         $this->tried = $value['tried'];
+        $this->pause = $value['pause'];
         $this->last_result = $value['last_result'];
-        if($value['tried'] >= 20){
-            $this->_website->where(array('sid' => $this->sid))->delete();
-            $this->_log->where(array('sid' => $this->sid))->delete();
+
+        if ($this->pause) {
+            echo "暂停";
+            return;
+        }
+
+        if($this->tried >= 20){
+            $this->_website->where(array('sid' => $this->sid))->save(array('pause' => 0));
             return 0;
         }
 

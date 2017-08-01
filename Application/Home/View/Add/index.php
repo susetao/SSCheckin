@@ -32,25 +32,24 @@
                 </div>
             </div>
             <div class="form-group">
-                <label for="url" class="col-sm-2 control-label">(*)URL</label>
+                <label for="url" class="col-sm-2 control-label">URL</label>
                 <div class="col-sm-10">
                     <input type="url" class="form-control" id="website" name="website" required>
-                    <p class="help-block">填主页网址，例如http://baidu.com，最后面不要加斜杠(/)以及其他内容，http和https不要写错</p>
                 </div>
             </div>
             <div class="form-group up-group">
-                <label for="suser" class="col-sm-2 control-label" id="suser-label">(*)帐号</label>
+                <label for="suser" class="col-sm-2 control-label" id="suser-label">帐号</label>
                 <div class="col-sm-10">
                     <input type="text" class="form-control" id="suser" name="suser" required>
                 </div>
             </div>
             <div class="form-group up-group">
-                <label for="spass" class="col-sm-2 control-label" id="spass-label">(*)密码</label>
+                <label for="spass" class="col-sm-2 control-label" id="spass-label">密码</label>
                 <div class="col-sm-10">
                     <input type="text" class="form-control" id="spass" name="spass" required>
                 </div>
             </div>
-            <div class="form-group">
+            <div class="form-group cookie-group">
                 <label for="cookies" class="col-sm-2 control-label" id="cookies-label">Cookies</label>
                 <div class="col-sm-10">
                     <textarea id="cookies" name="cookies" class="form-control" placeholder="格式为fruit=apple; colour=red"></textarea>
@@ -60,7 +59,6 @@
             </div>
             <div class="form-group" id="end-div">
                 <div class="col-sm-offset-2 col-sm-10">
-                    <p class="help-block">注意：带*的项目为必填项目<p>
                     <input type="submit" class="btn btn-default" onclick="//return submitCheck();">
                 </div>
             </div>
@@ -81,19 +79,17 @@
             if(value == 1){
                 $('#suser').prop('required',true);
                 $('#spass').prop('required',true);
-                $('#suser-label').html('(*)帐号');
-                $('#spass-label').html('(*)密码');
-
                 $('#cookies').prop('required',false);
-                $('#cookies-label').html('Cookies');
+
+                $('.up-group').show();
+                $('.cookie-group').hide();
             }else if(value == 2){
                 $('#suser').prop('required',false);
                 $('#spass').prop('required',false);
-                $('#suser-label').html('帐号');
-                $('#spass-label').html('密码');
-
                 $('#cookies').prop('required',true);
-                $('#cookies-label').html('(*)Cookies');
+
+                $('.up-group').hide();
+                $('.cookie-group').show();
             }else{
                 window.location.reload();
             }

@@ -6,12 +6,16 @@ class ModifyController extends LoginCheckController{
         parent::__construct();
         if(empty(I("get.id"))){
             return $this->error('非法请求');
-        }        
+        }
 
         $this->sid = I("get.id");
         $this->uid = session('uid');
 
-        $result = D('website')->where(array('uid'=>$this->uid,'sid'=>$this->sid))->find();
+        $this->user = D('user');
+        $this->_website = D('website');
+        $this->_log = D('log');
+
+        $result = $this->_website->where(array('uid'=>$this->uid,'sid'=>$this->sid))->find();
         if(empty($result)){
             return $this->error('非法请求');
         }
@@ -19,7 +23,7 @@ class ModifyController extends LoginCheckController{
 
     public function index()
     {
-        $result = D('website')->where(array('sid'=>$this->sid))->find();
+        $result = $this->_website->where(array('sid'=>$this->sid))->find();
         $this->assign('result',$result);
         $this -> display();
     }
@@ -27,7 +31,7 @@ class ModifyController extends LoginCheckController{
     public function del()
     {
         if(D("website")->where(array('sid'=>$this->sid))->delete()){
-            D('log')->where(array('sid'=>$this->sid))->delete();
+            $this->_log->where(array('sid'=>$this->sid))->delete();
             $this->success('删除成功','/Home/');
         }else{
             $this->error('删除失败');
@@ -70,7 +74,7 @@ class ModifyController extends LoginCheckController{
                 return $this->error('非法请求');
             }
 
-            $result = D('website')->where(array('sid'=>$this->sid))->save(array(
+            $result = $this->_website->where(array('sid'=>$this->sid))->save(array(
                 'checkin_type' => $checkin_type,
                 'website' => $website,
                 'website_name' => $website_name,
@@ -91,7 +95,7 @@ class ModifyController extends LoginCheckController{
 
     public function log()
     {
-        $result = D('log')->where(array('sid'=>$this->sid))->order('id DESC')->limit(5)->select();
+        $result = $this->_log->where(array('sid'=>$this->sid))->order('id DESC')->limit(5)->select();
         echo '<table class="table"><tr><th>时间</th><th>日志</th></tr>';
         foreach ($result as $value) {
             echo '<tr>';
@@ -107,11 +111,11 @@ class ModifyController extends LoginCheckController{
     }
     public function clearCache()
     {
-        $result = D('website')->where('sid='.$this->sid)->field('checkin_type')->find();
+        $result = $this->_website->where('sid='.$this->sid)->field('checkin_type')->find();
         $checkin_type = $result['checkin_type'];
         switch ($checkin_type) {
             case '1':
-                $result = D('website')->where('sid='.$this->sid)->save(array(
+                $result = $this->_website->where('sid='.$this->sid)->save(array(
                     'website_name' => '',
                     'cookies' => '',
                     'site_type' => ''
@@ -119,7 +123,7 @@ class ModifyController extends LoginCheckController{
                 break;
 
             case '2':
-                $result = D('website')->where('sid='.$this->sid)->save(array(
+                $result = $this->_website->where('sid='.$this->sid)->save(array(
                     'website_name' => '',
                     'username' => '',
                     'site_type' => ''
@@ -149,5 +153,14 @@ class ModifyController extends LoginCheckController{
         }
 
         return $url;
+    }
+
+    public function taskActive()
+    {
+        if ($this->_website->where('sid='.$this->sid)->save(array('pause' => 0, 'tried' => 0))) {
+            $this->success('操作成功');
+        }else{
+            $this->error('操作失败');
+        }
     }
 }

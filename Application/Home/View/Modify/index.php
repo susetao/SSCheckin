@@ -20,6 +20,11 @@
             <li><a href="<?php echo U('/Home/Index/');?>">主页</a></li>
             <li class="active">站点信息</li>
         </ol>
+        <?php if ($result['pause']) {?>
+        <div class="alert alert-danger" role="alert">
+            该签到任务已被系统暂停,你可以<a href="<?php echo U('Home/Modify/taskActive?id='.I('get.id'))?>">点击此处激活</a>。
+        </div>
+        <?php } ?>
         <div class="panel panel-default">
             <div class="panel-heading">
                 <h3 class="panel-title">修改信息</h3>
@@ -50,26 +55,25 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="url" class="col-sm-2 control-label">(*)URL</label>
+                        <label for="url" class="col-sm-2 control-label">URL</label>
                         <div class="col-sm-10">
                             <input type="url" class="form-control" id="website" name="website" required  value="<?php echo $result['website'];?>">
-                            <p class="help-block">填主页网址，例如http://baidu.com，最后面不要加斜杠(/)以及其他内容，http和https不要写错</p>
                         </div>
                     </div>
                     
                     <div class="form-group up-group">
-                        <label for="suser" class="col-sm-2 control-label" id="suser-label">(*)帐号</label>
+                        <label for="suser" class="col-sm-2 control-label" id="suser-label">帐号</label>
                         <div class="col-sm-10">
                             <input type="text" class="form-control" id="suser" name="suser" required value="<?php echo $result['username'];?>">
                         </div>
                     </div>
                     <div class="form-group up-group">
-                        <label for="spass" class="col-sm-2 control-label" id="spass-label">(*)密码</label>
+                        <label for="spass" class="col-sm-2 control-label" id="spass-label">密码</label>
                         <div class="col-sm-10">
                             <input type="text" class="form-control" id="spass" name="spass" required value="<?php echo $result['password'];?>">
                         </div>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group cookie-group">
                         <label for="cookies" class="col-sm-2 control-label" id="cookies-label">Cookies</label>
                         <div class="col-sm-10">
                             <textarea id="cookies" name="cookies" class="form-control" placeholder="格式为fruit=apple; colour=red"><?php echo $result['cookies'];?></textarea>
@@ -79,7 +83,6 @@
                     </div>
                     <div class="form-group" id="end-div">
                         <div class="col-sm-offset-2 col-sm-10">
-                            <p class="help-block">注意：带*的项目为必填项目<p>
                             <input type="submit" class="btn btn-default" onclick="//return submitCheck();">
                         </div>
                     </div>
@@ -87,7 +90,7 @@
             </div>
             <?php
             if(!empty($result['tried'])){
-                echo '<div class="panel-footer text-center"><span class="">连续失败：<code>',$result['tried'],'</code>；失败次数过多的签到任务会被系统删除。</span></div>';
+                echo '<div class="panel-footer text-center"><span class="">连续失败：<code>',$result['tried'],'</code>；失败次数过多的签到任务会被系统暂停。</span></div>';
             }
             ?>
         </div>
@@ -137,8 +140,8 @@
                 <button type="button" class="btn btn-default" data-dismiss="modal">手抖了</button>
                 <a href="<?php echo U("/Home/Modify/del?id=".I('get.id'));?>" class="btn btn-danger">确定删除</a>
             </div>
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal -->
+        </div>
+    </div>
 
     <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
     <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
@@ -154,19 +157,17 @@
             if(value == 1){
                 $('#suser').prop('required',true);
                 $('#spass').prop('required',true);
-                $('#suser-label').html('(*)帐号');
-                $('#spass-label').html('(*)密码');
-
                 $('#cookies').prop('required',false);
-                $('#cookies-label').html('Cookies');
+
+                $('.up-group').show();
+                $('.cookie-group').hide();
             }else if(value == 2){
                 $('#suser').prop('required',false);
                 $('#spass').prop('required',false);
-                $('#suser-label').html('帐号');
-                $('#spass-label').html('密码');
-
                 $('#cookies').prop('required',true);
-                $('#cookies-label').html('(*)Cookies');
+
+                $('.up-group').hide();
+                $('.cookie-group').show();
             }else{
                 window.location.reload();
             }
