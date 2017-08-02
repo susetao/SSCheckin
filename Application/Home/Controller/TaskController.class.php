@@ -17,7 +17,7 @@ class TaskController extends Controller
 
     public function index()
     {
-        $num_once = 10;
+        $num_once = 5;
 
         //读上一次的位置
         $result = $this->_log->where('sid=0')->order('id DESC')->find();
@@ -31,25 +31,37 @@ class TaskController extends Controller
             }
         }
 
+        //如果网站的总数量小于每一次签到的数量,那么就只把所有的网站签到一遍
+        $count = $this->_website->count();
+        if ($count < $num_once) $num_once = $count;
+
+        //如果上次签到的id是最大id那么就从头开始签到
         $result = $this->_website->order('sid DESC')->find();
         $max_id = $result['sid'];
 
         if(empty($last_id) || $last_id == $max_id || !is_numeric($last_id)){
-            $last_id = 0;
+                $last_id = 0;
         }
 
-        $checkin_query = $this->_website->where('sid>'.$last_id)->field('sid')->limit($num_once)->select();
+        for ($i=0; $i < $num_once; $i++) {
+            $last_id = $this->_website->where('sid>'.$last_id)->getField('sid');
+            
+            if(empty($last_id) || $last_id == $max_id || !is_numeric($last_id)){
+                $last_id = 0;
+            }
+            //遇到返回值为false或者为0的不计数(签到失败的计数,跳过的不计数)
+            if($this->checkin($last_id) === 0) $i--;
+        }
 
+        //写入这次的log,记下签到的id
         $this->_log->add(array(
             'time' => date('Y-m-d H:i:s'),
             'sid' => 0,
-            'result' => $checkin_query[count($checkin_query) - 1]['sid']
+            'result' => $last_id
         ));
-        if($last_log_id) $this->_log->where('id='.$last_log_id)->delete();
 
-        foreach ($checkin_query as $value) {
-            $this->checkin($value['sid']);
-        }
+        //删除上次的log删除上次的log
+        if($last_log_id) $this->_log->where('id='.$last_log_id)->delete();
     }
 
     protected function countNum($v = true)
@@ -108,12 +120,17 @@ class TaskController extends Controller
         $last_time = $result['time'];
         $last_log_id = $result['id'];
 
-        if($last_time){
-            if(strtotime($last_time.' +60 minutes') > strtotime('now')){
-                echo '午时未到ヽ(●-`Д´-)ノ';
-                return;
-            }
+        if($last_time && strtotime($last_time.' +60 minutes') > strtotime('now')){
+            echo '午时未到ヽ(●-`Д´-)ノ';
+            return;
         }
+
+        $this->_log->add(array(
+            'time' => date('Y-m-d H:i:s'),
+            'sid' => 1,
+            'result' => 'backup'
+            ));
+        if($last_log_id) $this->_log->where('id='.$last_log_id)->delete();
 
         $result = $this->_user->select();
         $sql_user = '';
@@ -189,13 +206,6 @@ class TaskController extends Controller
         }
 
         ftp_close($conn_id);
-
-        $this->_log->add(array(
-            'time' => date('Y-m-d H:i:s'),
-            'sid' => 1,
-            'result' => 'backup'
-            ));
-        if($last_log_id) $this->_log->where('id='.$last_log_id)->delete();
     }
 
     public function userRequire()
@@ -246,14 +256,14 @@ class TaskController extends Controller
         $this->pause = $value['pause'];
         $this->last_result = $value['last_result'];
 
-        if ($this->pause) {
-            echo "暂停";
-            return;
+        if ($this->pause || empty($this->website)) {
+            return 0;//返回0表示跳过
         }
 
+        //连续失败达到最大值,暂停任务
         if($this->tried >= 20){
-            $this->_website->where(array('sid' => $this->sid))->save(array('pause' => 0));
-            return 0;
+            $this->_website->where(array('sid' => $this->sid))->save(array('pause' => 1));
+            return 0;//返回0表示跳过
         }
 
         if(empty($this->site_type)){
@@ -261,16 +271,13 @@ class TaskController extends Controller
             $this->_website->where(array('sid' => $this->sid))->save(array('site_type'=>$this->site_type));
         }
 
-        if(empty($this->website)){
-            return;
-        }
-
         echo '<br/>'.$this->sid.':';
 
+        //上一次成功并且签到时间在间隔之外,跳过
         $result = $this->_log->where('sid='.$this->sid)->order('id DESC')->find();
         if($this->last_result && strtotime($result['time'].' +60 minutes') > strtotime('now')){
             echo '跳过';
-            return 0;
+            return 1;
         }
 
         //获取网站访问状态
