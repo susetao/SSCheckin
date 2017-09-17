@@ -3,4 +3,4 @@
 
 我会在我认为代码比较完善的时候会更新上来。
 
-如需使用请访问<https:sscheckin.tk>。
+如需使用请访问<https://sscheckin.tk>。
